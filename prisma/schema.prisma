@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  u_id String @id @default(uuid())
+  u_name  String
+  email String  @unique
+  role_id String
+  role role @relation(fields: [role_id], references: [r_id])
+  hash_pwd String
+  tasks task[]
+  created_projects project[]
+  user_projects  user_project[]
+  user_tasks user_task[]
+}
+
+model project {
+  p_id String @id @default(uuid())
+  p_name  String
+  p_title String
+  p_description String
+  p_status_id String
+  project_status project_status @relation(fields: [p_status_id], references: [p_status_id])
+  start_date DateTime
+  end_date DateTime
+  created_by_id String
+  created_by user @relation(fields: [created_by_id], references: [u_id])
+  user_projects  user_project[]
+  tasks task[]
+}
+
+model task {
+  t_id String @id @default(uuid())
+  t_description String
+  due_date DateTime
+  priority Int
+  task_status_id String
+  task_status task_status @relation(fields: [task_status_id], references: [t_status_id])
+  p_id String
+  project project @relation(fields: [p_id], references: [p_id])
+  added_by_id String
+  added_by user @relation(fields: [added_by_id], references: [u_id])
+  user_tasks user_task[]
+}
+
+model user_task {
+  ud_id String @id @default(uuid())
+  assigned DateTime 
+  related_to_id String
+  related_to task @relation(fields: [related_to_id], references: [t_id])
+  assigned_to_id String
+  assigned_to user @relation(fields: [assigned_to_id], references: [u_id])
+}
+
+model user_project {
+  up_id String @id @default(uuid())
+  project_id String
+  project project @relation(fields: [project_id], references: [p_id])
+  assigned_to_id String
+  assigned_to user @relation(fields: [assigned_to_id], references: [u_id])
+}
+
+model role {
+  r_id String @id @default(uuid())
+  role_name String
+  users user[]
+}
+
+model task_status {
+  t_status_id String @id @default(uuid())
+  t_status_name String
+  tasks task[]
+}
+
+model project_status {
+  p_status_id String @id @default(uuid())
+  p_status_name String
+  projects project[]
+}
