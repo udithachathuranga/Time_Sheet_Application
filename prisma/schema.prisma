@@ -44,6 +44,7 @@ model Project {
 
 model Task {
   t_id String @id @default(uuid())
+  t_title String
   t_description String
   due_date DateTime
   time_estimate Float
@@ -55,6 +56,7 @@ model Task {
   added_by_id String
   added_by User @relation(fields: [added_by_id], references: [u_id])
   user_tasks User_task[]
+  timeSheets TimeSheet[]
 }
 
 model User_task {
@@ -90,4 +92,12 @@ model Project_status {
   p_status_id String @id @default(uuid())
   p_status_name String
   projects Project[]
+}
+
+model TimeSheet {
+  tSheetId String @id @default(uuid())
+  taskId String
+  task Task @relation(fields: [taskId], references: [t_id])
+  date DateTime
+  duration Float
 }

@@ -22,14 +22,29 @@ export async function GET(request) {
 
     const taskIds = userTaskLinks.map(link => link.related_to_id);
 
-    // Step 2: Fetch all Task objects matching the IDs
+    // Step 2: Fetch Task objects, their assigned users, and related project
     const tasks = await prisma.task.findMany({
       where: {
         t_id: { in: taskIds },
       },
+      include: {
+        user_tasks: {
+          include: {
+            assigned_to: true, // fetch assigned user's full details
+          },
+        },
+        project: true, // include related project
+      },
     });
 
-    return NextResponse.json(tasks);
+    // Step 3: Add `assigns` field with user names and projectName
+    const tasksWithAssigns = tasks.map(task => ({
+      ...task,
+      assigns: task.user_tasks.map(ut => ut.assigned_to.u_name),
+      projectName: task.project?.p_name || null,
+    }));
+
+    return NextResponse.json(tasksWithAssigns);
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 });

@@ -1,43 +1,91 @@
-import React, { use, useEffect } from 'react'
+'use client';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useRef } from 'react'
 import { useState } from 'react';
 
-function Table({ name, tasks, setShowDescription, showDescription }) {
+function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTask, currentProjectId, userId, setCurrentTask }) {
   const [newRow, setNewRow] = useState();
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
-  const [task, setTask] = useState();
-  const [assigns, setAssigns] = useState();
+  const [taskTitle, setTaskTitle] = useState();
+  const [assigns, setAssigns] = useState([]);
   const [dueDate, setDueDate] = useState();
   const [priority, setPriority] = useState();
-  const [status, setStatus] = useState();
+  const [taskStatusId, setTaskStatusId] = useState();
   const [timeEstimate, setTimeEstimate] = useState(0);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [usersInProject, setUsersInProject] = useState();
+  const [isJobDropdownOpen, setIsJobDropdownOpen] = React.useState(false);
+
+  const router = useRouter();
+  const rowRef = useRef();
 
   useEffect(() => {
-    //
-  }, []);
+    console.log("Opened Project: ", currentProjectId);
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch(`/api/users_in_project?project_id=${currentProjectId}`);
+        if (!res.ok) throw new Error("Failed to fetch users");
+        const users = await res.json();
+        setUsersInProject(users);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        return [];
+      }
+    }
+    fetchUsers();
+    console.log("taskList: ", tasks)
+  }, [currentProjectId]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (rowRef.current && !rowRef.current.contains(event.target)) {
+        setNewRow(false);
+      }
+    };
+    if (newRow) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [newRow, setNewRow]);
 
   const handleKeyPress = async (e) => {
     if (e.key === 'Enter') {
       //create task
-      alert("hello");
       const res = await fetch('/api/newtask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          t_description: task,
+          t_title: taskTitle,
+          t_description: "",
           due_date: new Date(dueDate),
           time_estimate: parseInt(timeEstimate, 10),
           priority: parseInt(priority, 10),
-          task_status_id: "1",
-          p_id: "1",
-          added_by_id: "2",
-          //assigns users in user-task table
+          task_status_id: taskStatusId,
+          p_id: currentProjectId,
+          added_by_id: userId,
+          assigns
         }),
       })
       if (res.ok) {
         alert("task created successfully");
+      } else {
+        const errorData = await res.json();
+        console.error("Error creating task:", errorData);
+        alert("Failed to create task");
       }
     }
+  };
+
+  // Helper to handle checkbox changes for user selection
+  const handleUserSelect = (user, checked) => {
+    setSelectedUsers(prev =>
+      checked
+        ? [...(prev || []), user]
+        : (prev || []).filter(u => u !== user)
+    );
   };
 
   return (
@@ -72,203 +120,158 @@ function Table({ name, tasks, setShowDescription, showDescription }) {
           </thead>
           <tbody>
 
-
-
-
-            <tr onClick={() => setShowDescription(!showDescription)} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300">
-              <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                Apple MacBook Pro 17"
-              </th>
-              <td claclassNamess="px-6 py-4">
-                Silver
-              </td>
-              <td className="px-6 py-4">
-                Laptop
-              </td>
-              <td className="px-6 py-4">
-                $2999
-              </td>
-              <td className="px-6 py-4">
-                Silver
-              </td>
-              <td className="px-6 py-4">
-                Silver
-              </td>
-            </tr>
-
             {tasks?.map((task, index) => (
-              <tr onClick={() => setShowDescription(!showDescription)} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300">
-              <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                {task.t_description}
-              </th>
-              <td claclassNamess="px-6 py-4">
-                assigns
-              </td>
-              <td className="px-6 py-4">
-                {task.due_date}
-              </td>
-              <td className="px-6 py-4">
-                {task.priority}
-              </td>
-              <td className="px-6 py-4">
-                {task.status}
-              </td>
-              <td className="px-6 py-4">
-                {task.timeEstimate}
-              </td>
-            </tr>
-            ))}
-
-
-            {newRow &&
-              <tr onKeyPress={handleKeyPress} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300">
+              <tr
+                onClick={() => { setShowDescription(!showDescription); setCurrentTask(task); }}
+                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300">
                 <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                  <input
-                    type="text"
-                    id="task"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                    value={task}
-                    onChange={(e) => setTask(e.target.value)}
-                    required
-                  />
+                  {task.t_title}
                 </th>
-                <td className="px-6 py-4 z-10">
-                  <div className="pt-10">
-                    <button
-                      onClick={() => setIsAssignOpen(!isAssignOpen)}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                      type="button"
-                    >
-                      Users
-                    </button>
-
-                    {isAssignOpen && (
-                      <div className="absolute z-index mt-2 w-48 bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600">
-                        <ul className="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200">
-                          <li>
-                            <label className="flex items-center p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <input
-                                type="checkbox"
-                                name="default-radio"
-                                className="h-4 w-4 text-blue-600"
-                                defaultChecked
-                              />
-                              <span className="ms-2">User 1</span>
-                            </label>
-                          </li>
-                          <li>
-                            <label className="flex items-center p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <input
-                                type="checkbox"
-                                name="default-radio"
-                                className="h-4 w-4 text-blue-600"
-                              />
-                              <span className="ms-2">User 2</span>
-                            </label>
-                          </li>
-                        </ul>
-                      </div>
-                    )}
-
-                  </div>
+                <td className="px-6 py-4">
+                  {task.assigns?.join(', ')}
                 </td>
 
                 <td className="px-6 py-4">
+                  {new Date(task.due_date).toLocaleDateString()}
+                </td>
+
+                <td className="px-6 py-4">
+                  {task.priority}
+                </td>
+                <td className="px-6 py-4">
+                  {{
+                    '1': 'Open',
+                    '2': 'On-Going',
+                    '3': 'Done'
+                  }[task.task_status_id] || 'Unknown'}
+                </td>
+
+                <td className="px-6 py-4">
+                  {task.time_estimate}
+                </td>
+              </tr>
+            ))}
+
+            {newRow &&
+              <tr
+                onKeyPress={handleKeyPress}
+                ref={rowRef}
+                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300">
+                {/* Task Name */}
+                <td className="px-4 py-2">
+                  <input
+                    type="text"
+                    id="taskTitle"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                    value={taskTitle}
+                    onChange={(e) => setTaskTitle(e.target.value)}
+                    required
+                  />
+                </td>
+
+                {/* Assign Dropdown */}
+                <td className="px-4 py-2 relative">
+                  <button
+                    type="button"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 text-left"
+                    onClick={() => setIsJobDropdownOpen(!isJobDropdownOpen)}
+                  >
+                    {assigns.length > 0 ? `${assigns.length} selected` : "Add User"}
+                    <span className="ml-1 float-right">▼</span>
+                  </button>
+
+                  {isJobDropdownOpen && (
+                    <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      <div className="p-2">
+                        {usersInProject.map((user, index) => (
+                          <div key={index} className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800">
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="mr-2 h-4 w-4 accent-blue-600"
+                                value={user.u_id}
+                                checked={assigns.includes(user.u_id)}
+                                onChange={(e) => {
+                                  const userId = user.u_id;
+                                  const updatedList = e.target.checked
+                                    ? [...assigns, userId]
+                                    : assigns.filter(id => id !== userId);
+                                  setAssigns(updatedList);
+                                }}
+                              />
+                              <span className="text-gray-800">{user.u_name}</span>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </td>
+
+                {/* Due Date */}
+                <td className="px-4 py-2">
                   <input
                     type="date"
                     id="dueDate"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                  //required
                   />
                 </td>
-                <td className="px-6 py-4">
+
+                {/* Priority */}
+                <td className="px-4 py-2">
                   <input
-                    type="text"
+                    type="number"
                     id="priority"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                  //required
                   />
                 </td>
 
-                <td className="px-6 py-4 z-10">
-                  <div className="pt-10">
-                    <button
-                      onClick={() => setIsStatusOpen(!isStatusOpen)}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                      type="button"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                    >
-                      Status
-                    </button>
-
-                    {isStatusOpen && (
-                      <div className="absolute z-index mt-2 w-48 bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600">
-                        <ul className="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200">
-                          <li>
-                            <label className="flex items-center p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <input
-                                type="radio"
-                                name="default-radio"
-                                className="h-4 w-4 text-blue-600"
-                              />
-                              <span className="ms-2">open</span>
-                            </label>
-                          </li>
-                          <li>
-                            <label className="flex items-center p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <input
-                                type="radio"
-                                name="default-radio"
-                                className="h-4 w-4 text-blue-600"
-                                defaultChecked
-                              />
-                              <span className="ms-2">in progress</span>
-                            </label>
-                          </li>
-                          <li>
-                            <label className="flex items-center p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <input
-                                type="radio"
-                                name="default-radio"
-                                className="h-4 w-4 text-blue-600"
-                              />
-                              <span className="ms-2">done</span>
-                            </label>
-                          </li>
-                        </ul>
-                      </div>
-                    )}
-
-                  </div>
+                {/* Task Status */}
+                <td className="px-4 py-2">
+                  <select
+                    id="taskStatusId"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                    value={taskStatusId}
+                    onChange={(e) => setTaskStatusId(e.target.value)}
+                    required
+                  >
+                    <option value="">Select status</option>
+                    <option value="1">Open</option>
+                    <option value="2">On-Going</option>
+                    <option value="3">Done</option>
+                  </select>
                 </td>
-                <td className="px-6 py-4">
+
+                {/* Time Estimate */}
+                <td className="px-4 py-2">
                   <input
                     type="number"
                     id="timeEstimate"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                     value={timeEstimate}
                     onChange={(e) => setTimeEstimate(e.target.value)}
-                  //required
                   />
                 </td>
-              </tr>}
-            <tr onClick={() => { setNewRow(true); }} className=" dark:bg-gray-800 cursor-pointer hover:bg-gray-300">
-              <th scope="row" className="flex px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16" />
-                </svg>
-                <span className="ms-3">Add a New Task</span>
-              </th>
-            </tr>
+              </tr>
+            }
+
+            {isEnableAddTask && !newRow &&
+              <tr onClick={() => { setNewRow(true); }} className=" dark:bg-gray-800 cursor-pointer hover:bg-gray-300">
+                <th scope="row" className="flex px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                  <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16" />
+                  </svg>
+                  <span className="ms-3">Add a New Task</span>
+                </th>
+              </tr>
+            }
           </tbody>
         </table>
       </div>
-
     </div>
   )
 }

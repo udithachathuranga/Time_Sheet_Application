@@ -14,8 +14,24 @@ export async function GET(request) {
       where: {
         p_id: projectId,
       },
+      include: {
+        user_tasks: {
+          include: {
+            assigned_to: true, // get assigned user's data
+          },
+        },
+        project: true,  // include related project data
+      },
     });
-    return NextResponse.json(tasks);
+
+    // Add `assigns` array with user names and `projectName` from project relation
+    const tasksWithAssigns = tasks.map(task => ({
+      ...task,
+      assigns: task.user_tasks.map(ut => ut.assigned_to.u_name),
+      projectName: task.project?.p_name || null,
+    }));
+
+    return NextResponse.json(tasksWithAssigns);
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 });

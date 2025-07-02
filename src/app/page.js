@@ -1,22 +1,27 @@
 'use client';
 import Descriptionbar from "../(component)/Descriptionbar";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Sidebar from "../(component)/Sidebar";
 import Table from "../(component)/Table";
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from "jwt-decode";
+import { useFormStatus } from "react-dom";
 
 export default function Home() {
+
   const [role, setRole] = useState("");
   const [u_id, setU_id] = useState("");
   const [topic, setTopic] = useState("All");
-  const [task, setTask] = useState();
+  const [currentTask, setCurrentTask] = useState();
   const [tasklist, setTasklist] = useState([]);
   const [openTasks, setOpenTasks] = useState([]);
   const [ongoingTasks, setOngoingTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
   const [showDescription, setShowDescription] = useState(false);
+  const [isEnableAddTask, setIsEnableAddTask] = useState(false);
+  const [currentProjectId, setCurrentprojectId] = useState("");
+
   const router = useRouter();
 
   useEffect(() => {
@@ -37,14 +42,13 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    console.log("Role updated: ", role);
-    console.log("User Id: ", u_id);
-  }, [role,u_id]);
-
-  useEffect(() => {
-    setCompletedTasks(tasklist.filter(task => task.status_id === "1"));
-    setOngoingTasks(tasklist.filter(task => task.status_id === "2"));
-    setOpenTasks(tasklist.filter(task => task.status_id === "3"));
+    console.log("Task list updated: ", tasklist )
+    setCompletedTasks(tasklist.filter(task => task.task_status_id === "1"));
+    setOngoingTasks(tasklist.filter(task => task.task_status_id === "2"));
+    setOpenTasks(tasklist.filter(task => task.task_status_id === "3"));
+    console.log("completed tasks: ", completedTasks);
+    console.log("ongoing tasks: ", ongoingTasks);
+    console.log("open tasks: ", openTasks);
   }, [tasklist]);
 
 
@@ -68,7 +72,7 @@ export default function Home() {
 
   return (
     <div>
-      <Sidebar user_id={u_id} role={role} setTasklist={setTasklist} setTopic={setTopic} />
+      <Sidebar user_id={u_id} role={role} setTasklist={setTasklist} setTopic={setTopic} setIsEnableAddTask={setIsEnableAddTask} setCurrentProjectId={setCurrentprojectId} />
       <div className="p-3 sm:ml-64">
         <div>
 
@@ -88,14 +92,14 @@ export default function Home() {
             </div>
           </div>
           
+          <Table name="Opened" tasks={completedTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} />
+          <Table name="In Progress" tasks={ongoingTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} />
+          <Table name="Completed" tasks={openTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} />
 
-          <Table name="Completed" tasks={completedTasks} showDescription={showDescription} setShowDescription={setShowDescription} />
-          <Table name="In Progress" tasks={ongoingTasks} showDescription={showDescription} setShowDescription={setShowDescription} />
-          <Table name="Opened" tasks={openTasks} showDescription={showDescription} setShowDescription={setShowDescription} />
         </div>
 
         <div className="bottom-0 right-0 w-full bg-gray-200 dark:bg-gray-800 p-4 border-l border-black dark:border-white">
-          {showDescription && <Descriptionbar />}
+          {showDescription && <Descriptionbar currentTask={currentTask} role={role} />}
         </div>
 
       </div>

@@ -16,9 +16,7 @@ export async function POST(req) {
     console.log(typeof hash_pwd);
     console.log("before creating user");
 
-
-
-    const newUser = await prisma.User.create({
+    const newUser = await prisma.user.create({
       data: {
         u_name,
         email,

@@ -11,8 +11,10 @@ function NewProject() {
     const [p_status_id, setP_status_id] = React.useState('');
     const [start_date, setStart_date] = React.useState('');
     const [end_date, setEnd_date] = React.useState('');
-    const [assigns, setAssigns] = React.useState('');
+    const [assigns, setAssigns] = React.useState([]);
     const [created_by_id, setCreated_by_id] = React.useState("");
+    const [allUsers, setAllUsers] = React.useState([]);
+    const [isJobDropdownOpen, setIsJobDropdownOpen] = React.useState(false);
 
     const router = useRouter();
 
@@ -27,7 +29,7 @@ function NewProject() {
             const role = decoded.role;
             console.log("Role: ", role);
             setCreated_by_id(decoded.userId)
-            console.log("user_id: ",decoded.userId);
+            console.log("user_id: ", decoded.userId);
             if (role != "1") {
                 alert("You are not authorized to this page!!");
                 router.push('/');
@@ -35,11 +37,29 @@ function NewProject() {
         } else {
             console.warn('No token found');
         }
+
+        const fetchUsers = async () => {
+            try {
+                console.log("begore");
+                const res = await fetch('/api/all_users');
+                if (!res.ok) throw new Error("Failed to fetch users");
+                const allUsers = await res.json();
+                console.log(allUsers);
+
+                console.log("Users in the projectttt:", allUsers);
+                setAllUsers(allUsers);
+            } catch (err) {
+                console.error("Error fetching users:", err);
+                return [];
+            }
+        }
+        fetchUsers();
+
     }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("created by: ",created_by_id);
+        console.log("created by: ", created_by_id);
         // Create a new project object
         const res = await fetch('/api/newproject', {
             method: 'POST',
@@ -58,9 +78,9 @@ function NewProject() {
         if (res.ok) {
             console.log("Project Submitted");
             alert("Project created successfully");
-            console.log("created by: ",created_by_id);
+            console.log("created by: ", created_by_id);
             router.push('/');
-        }else{
+        } else {
             alert("Error in project submitting!!");
             console.log("project was not submited!!");
         }
@@ -151,7 +171,6 @@ function NewProject() {
                     </div>
 
                     <div className='flex gap-4 w-full'>
-
                         <div className="mb-5 w-96">
                             <label htmlFor="p_status_id" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                 Status
@@ -169,25 +188,53 @@ function NewProject() {
                             </select>
 
                         </div>
-
+                        {/* /////////////////////////////////////////////////////////////////////// */}
                         <div className="mb-5 w-96">
                             <label htmlFor="assigns" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                 Assigns
                             </label>
-                            <select
-                                id="assigns"
+                            <button
+                                type="button"
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                                value={assigns}
-                                onChange={(e) => setAssigns(e.target.value)}
-                                required
+                                onClick={() => setIsJobDropdownOpen(!isJobDropdownOpen)}
                             >
-                                <option value="">Add user</option>
-                                <option value="1">user 1</option>
-                                <option value="2">user 2</option>
-                            </select>
+                                {assigns.length > 0 ? `${assigns.length} selected` : "Add User"}
+                                <span className="ml-1">▼</span>
+                            </button>
+                            {isJobDropdownOpen && (
+                                <div className="absolute z-10 mt-1 w-56 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                    <div className="p-2">
+                                        {allUsers.map((user, index) => (
+                                            <div
+                                                key={index}
+                                                className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800"
+                                            >
+                                                <label className="flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="mr-2 h-4 w-4 accent-blue-600"
+                                                        value={user.u_id}
+                                                        checked={assigns.includes(user.u_id)}
+                                                        onChange={(e) => {
+                                                            const userId = user.u_id;
+                                                            const updatedList = e.target.checked
+                                                                ? [...assigns, userId]
+                                                                : assigns.filter(id => id !== userId);
 
+                                                            setAssigns(updatedList);
+                                                            console.log("Assigns:", updatedList);
+                                                        }}
+                                                    />
+                                                    <span className="text-gray-800">{user.u_name}</span>
+                                                </label>
+                                            </div>
+                                        ))}
+
+                                    </div>
+                                </div>
+                            )}
                         </div>
-
+                        {/* //////////////////////////////////////////////////////////////////////////// */}
                     </div>
 
                     <div className="gap-4 width-full flex justify-end">

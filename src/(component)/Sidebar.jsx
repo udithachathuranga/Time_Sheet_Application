@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 
-function Sidebar({ user_id, role, setTasklist, setTopic }) {
+function Sidebar({ user_id, role, setTasklist, setTopic, setIsEnableAddTask, setCurrentProjectId }) {
     const [projects, setProjects] = useState();
     const [users, setUsers] = useState();
     const [contextMenu, setContextMenu] = useState(null); // { x, y, projectId }
@@ -45,6 +45,7 @@ function Sidebar({ user_id, role, setTasklist, setTopic }) {
     }, [role]); // depend on role so it runs after it's available
 
     const handleAllClick = async () => {
+        setTopic("All");
         if (role == "1") {
             //fetch all tasks
             const res = await fetch('/api/all_tasks');
@@ -53,35 +54,42 @@ function Sidebar({ user_id, role, setTasklist, setTopic }) {
             console.log("All tasks:", data);
         } else {
             //fetch tasks according to user id
-            const res = await fetch(`/api/tasks?user_id=${user_id}`);
+            const res = await fetch(`/api/user_tasks?user_id=${user_id}`);
             const tasks = await res.json();
             setTasklist(tasks);
             console.log("User tasks:", tasks);
         }
     }
-    const handleProjectClick = async (p_id) => {
+    const handleProjectClick = async (p_id, p_name) => {
+        setCurrentProjectId(p_id);
+        setIsEnableAddTask(true);
+        setTopic(p_name);
         if (role == "1") {
             //fetch tasks accoring to project id
-            const res = await fetch(`/api/tasks?p_id=${p_id}`);
+            const res = await fetch(`/api/project_tasks?p_id=${p_id}`);
             const tasks = await res.json();
             setTasklist(tasks);
             console.log("Project tasks:", tasks);
         } else {
             //fetch tasks according to project id and user id
-            const res = await fetch(`/api/tasks?user_id=${user_id}&project_id=${p_id}`);
+            const res = await fetch(`/api/user_project_tasks?user_id=${user_id}&project_id=${p_id}`);
             const tasks = await res.json();
             setTasklist(tasks);
             console.log("Project-User tasks:", tasks);
         }
+        // console.log("project tasks: ",tasklist);
     }
-    const handleUserClick = async (u_id) => {
+    const handleUserClick = async (u_id, u_name) => {
+        setIsEnableAddTask(false);
+        setTopic(u_name);
         if (role == "1") {
             //fetch tasks according to user id
-            const res = await fetch(`/api/tasks?user_id=${u_id}`);
+            const res = await fetch(`/api/user_tasks?user_id=${u_id}`);
             const tasks = await res.json();
             setTasklist(tasks);
             console.log("User tasks:", tasks);
         }
+        // console.log("user tasks: ",tasklist);
     }
 
     const handleContextMenu = (e, projectId) => {
@@ -194,7 +202,7 @@ function Sidebar({ user_id, role, setTasklist, setTopic }) {
                 <ul className="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
                     {projects?.map((project, index) => (
                         <li key={project.p_id || index}>
-                            <div onClick={() => handleProjectClick(project.p_id)}
+                            <div onClick={() => handleProjectClick(project.p_id, project.p_name)}
                                 onContextMenu={(e) => handleContextMenu(e, project.p_id)}
                                 className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                                 <svg className="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18">
@@ -235,7 +243,7 @@ function Sidebar({ user_id, role, setTasklist, setTopic }) {
                     <ul className="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
                         {users?.map((user, index) => (
                             <li key={user.u_id || index}>
-                                <div onClick={() => handleUserClick(user.u_id)}
+                                <div onClick={() => handleUserClick(user.u_id, user.u_name)}
                                     onContextMenu={(e) => handleContextMenu_user(e, user.u_id)}
                                     className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                                     <svg className="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
@@ -263,8 +271,8 @@ function Sidebar({ user_id, role, setTasklist, setTopic }) {
 
             {contextMenu && (
                 <button
-                    style={{ top: contextMenu.y - 150, left: contextMenu.x }}
-                    className="absolute z-index bg-red-500 text-white hover:bg-red-300 rounded shadow"
+                    style={{ top: contextMenu.y, left: contextMenu.x }}
+                    className="absolute z-50 bg-red-500 text-white hover:bg-red-300 rounded shadow"
                     onClick={() => handleDeleteProject(contextMenu.projectId)}
                 >
                     Delete Project
@@ -273,8 +281,8 @@ function Sidebar({ user_id, role, setTasklist, setTopic }) {
 
             {contextMenu_user && (
                 <button
-                    style={{ top: contextMenu_user.y - 150, left: contextMenu_user.x }}
-                    className="absolute z-index bg-red-500 text-white hover:bg-red-300 rounded shadow"
+                    style={{ top: contextMenu_user.y, left: contextMenu_user.x }}
+                    className="absolute z-50 bg-red-500 text-black hover:bg-red-300 rounded shadow"
                     onClick={() => handleDeleteUser(contextMenu_user.userId)}
                 >
                     Delete User
