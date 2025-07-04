@@ -25,7 +25,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-
+  const fetchData = async () => {
     const token = Cookies.get('token');
     console.log('token: ', token);
 
@@ -33,13 +33,35 @@ export default function Home() {
       const decoded = jwtDecode(token);
       console.log("Decoded token:", decoded);
       setRole(decoded.role);
-      console.log("Role: ", role);
       setU_id(decoded.userId);
-      console.log("User Id: ", u_id);
+
+      // Wait for state to be updated before using role/u_id directly
+      const userRole = decoded.role;
+      const userId = decoded.userId;
+
+      setTopic("All");
+
+      if (userRole === "1") {
+        // Fetch all tasks
+        const res = await fetch('/api/all_tasks');
+        const data = await res.json();
+        setTasklist(data);
+        console.log("All tasks:", data);
+      } else {
+        // Fetch tasks for user
+        const res = await fetch(`/api/user_tasks?user_id=${userId}`);
+        const tasks = await res.json();
+        setTasklist(tasks);
+        console.log("User tasks:", tasks);
+      }
     } else {
       console.warn('No token found');
     }
-  }, []);
+  };
+
+  fetchData();
+}, []);
+
 
   useEffect(() => {
     console.log("Task list updated: ", tasklist )
@@ -92,9 +114,9 @@ export default function Home() {
             </div>
           </div>
           
-          <Table name="Opened" tasks={completedTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} />
-          <Table name="In Progress" tasks={ongoingTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} />
-          <Table name="Completed" tasks={openTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} />
+          <Table name="Opened" tasks={completedTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} setTasklist={setTasklist} />
+          <Table name="In Progress" tasks={ongoingTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} setTasklist={setTasklist} />
+          <Table name="Completed" tasks={openTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} setTasklist={setTasklist} />
 
         </div>
 
