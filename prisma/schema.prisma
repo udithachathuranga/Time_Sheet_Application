@@ -19,13 +19,13 @@ model User {
   u_name   String @unique
   email    String @unique
   role_id  String
-  role     Role   @relation(fields: [role_id], references: [r_id], onDelete: Cascade) // ✅ OK
+  role     Role   @relation(fields: [role_id], references: [r_id], onDelete: Cascade) 
   hash_pwd String
 
-  tasks            Task[]         @relation("AddedTasks") // ✅ Removed onDelete here
-  created_projects Project[]      @relation("CreatedProjects") // ✅ Removed onDelete here
-  user_projects    User_project[] // ✅ Removed onDelete here
-  user_tasks       User_task[] // ✅ Removed onDelete here
+  tasks            Task[]         @relation("AddedTasks") 
+  created_projects Project[]      @relation("CreatedProjects") 
+  user_projects    User_project[] 
+  user_tasks       User_task[] 
 }
 
 model Project {
@@ -34,13 +34,13 @@ model Project {
   p_title        String
   p_description  String
   p_status_id    String
-  project_status Project_status @relation(fields: [p_status_id], references: [p_status_id], onDelete: Cascade) // ✅ OK
+  project_status Project_status @relation(fields: [p_status_id], references: [p_status_id], onDelete: Cascade) 
   start_date     DateTime
   end_date       DateTime
   created_by_id  String
   created_by     User           @relation("CreatedProjects", fields: [created_by_id], references: [u_id], onDelete: Cascade) // ✅ OK
-  user_projects  User_project[] // ✅ Removed onDelete here
-  tasks          Task[] // ✅ Removed onDelete here
+  user_projects  User_project[] 
+  tasks          Task[] 
 }
 
 model Task {
@@ -64,41 +64,41 @@ model User_task {
   ud_id          String   @id @default(uuid())
   assigned       DateTime
   related_to_id  String
-  related_to     Task     @relation(fields: [related_to_id], references: [t_id], onDelete: Cascade) // ✅ OK
+  related_to     Task     @relation(fields: [related_to_id], references: [t_id], onDelete: Cascade) 
   assigned_to_id String
-  assigned_to    User     @relation(fields: [assigned_to_id], references: [u_id], onDelete: Cascade) // ✅ OK
+  assigned_to    User     @relation(fields: [assigned_to_id], references: [u_id], onDelete: Cascade) 
 }
 
 model User_project {
   up_id          String  @id @default(uuid())
   project_id     String
-  project        Project @relation(fields: [project_id], references: [p_id], onDelete: Cascade) // ✅ OK
+  project        Project @relation(fields: [project_id], references: [p_id], onDelete: Cascade)
   assigned_to_id String
-  assigned_to    User    @relation(fields: [assigned_to_id], references: [u_id], onDelete: Cascade) // ✅ OK
+  assigned_to    User    @relation(fields: [assigned_to_id], references: [u_id], onDelete: Cascade) 
 }
 
 model Role {
   r_id      String @id
   role_name String
-  users     User[] // ✅ Removed invalid onDelete
+  users     User[] 
 }
 
 model Task_status {
   t_status_id   String @id @default(uuid())
   t_status_name String
-  tasks         Task[] // ✅ Removed invalid onDelete
+  tasks         Task[] 
 }
 
 model Project_status {
   p_status_id   String    @id @default(uuid())
   p_status_name String
-  projects      Project[] // ✅ Removed invalid onDelete
+  projects      Project[] 
 }
 
 model TimeSheet {
   tSheetId String   @id @default(uuid())
   taskId   String
-  task     Task     @relation(fields: [taskId], references: [t_id], onDelete: Cascade) // ✅ OK
+  task     Task     @relation(fields: [taskId], references: [t_id], onDelete: Cascade)
   date     DateTime
   duration Float
 }
