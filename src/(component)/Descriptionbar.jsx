@@ -1,6 +1,4 @@
 import React, { use, useEffect, useRef } from 'react'
-import img from '../../public/loginPageImg.jpg'
-import Image from 'next/image'
 
 function Descriptionbar({ currentTask, role }) {
 
