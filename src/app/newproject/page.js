@@ -206,7 +206,7 @@ function NewProject() {
                                     <div className="p-2">
                                         {allUsers.map((user, index) => (
                                             <div
-                                                key={index}
+                                                key={user.u_id}
                                                 className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800"
                                             >
                                                 <label className="flex items-center cursor-pointer">

@@ -260,7 +260,7 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
             {tasks?.map((task, index) =>
               editTaskId === task.t_id ? (
                 <tr
-                  key={index}
+                  key={task.t_id}
                   onKeyPress={handleKeyPress}
                   ref={rowRef}
                   className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300"
@@ -294,7 +294,7 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
                           <div className="relative z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
                             <div className="p-2">
                               {usersInProject.map((user, index) => (
-                                <div key={index} className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800">
+                                <div key={task.t_id} className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800">
                                   <label className="flex items-center cursor-pointer">
                                     <input
                                       type="checkbox"
@@ -381,7 +381,7 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
                 </tr>
               ) : (
                 <tr
-                  key={index}
+                  key={task.t_id}
                   className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300 z-0"
                 >
 
@@ -467,7 +467,7 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
                         <div className="relative z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
                           <div className="p-2">
                             {usersInProject.map((user, index) => (
-                              <div key={index} className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800">
+                              <div key={user.u_id} className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800">
                                 <label className="flex items-center cursor-pointer">
                                   <input
                                     type="checkbox"

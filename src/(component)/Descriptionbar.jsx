@@ -160,7 +160,7 @@ function Descriptionbar({ currentTask, role }) {
 
               {timeSheets?.map((timeSheet, index) => (
                 <tr
-                  key={index}
+                  key={timeSheet.tSheetId}
                   className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300"
                   onContextMenu={(e) => { handleContextMenu(e, timeSheet.tSheetId); console.log("context menu clicked", timeSheet.tSheetId); }}>
                   <td className="px-6 py-4">
@@ -206,7 +206,7 @@ function Descriptionbar({ currentTask, role }) {
                 <tr onClick={() => { setNewRow(true); }} className=" dark:bg-gray-800 cursor-pointer hover:bg-gray-300">
                   <th scope="row" className="flex px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                     <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16" />
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
                     </svg>
                     <span className="ms-3">Add Time Sheet</span>
                   </th>
