@@ -108,7 +108,7 @@ function Descriptionbar({ currentTask, role }) {
 
         <div className="bg-gray-300 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white mt-4 p-4">
           <div className="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
-            <p>Task Description: {currentTask.t_description}</p>
+            <p>{`Task Description: ${currentTask.t_description}`}</p>
           </div>
           {/* Assigns */}
           {/* <div className="flex pt-4 mt-4 space-x-2 font-medium border-t border-gray-200 dark:border-gray-700">
@@ -141,7 +141,7 @@ function Descriptionbar({ currentTask, role }) {
         </div>
 
 
-        <div className='bg-gray-300 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white mt-4'>
+        <div className="bg-gray-300 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white mt-4">
           <div className="flex items-center justify-center mt-6 pt-4 border-t border-gray-300 dark:border-gray-600 text-lg font-semibold text-gray-800 dark:text-white tracking-wide">
             Track Times
           </div>
