@@ -260,6 +260,7 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
             {tasks?.map((task, index) =>
               editTaskId === task.t_id ? (
                 <tr
+                  key={index}
                   onKeyPress={handleKeyPress}
                   ref={rowRef}
                   className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300"

@@ -201,7 +201,7 @@ function Sidebar({ user_id, role, setTasklist, setTopic, setIsEnableAddTask, set
                 {/* projects */}
                 <ul className="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
                     {projects?.map((project, index) => (
-                        <li key={project.p_id || index}>
+                        <li key={index}>
                             <div onClick={() => handleProjectClick(project.p_id, project.p_name)}
                                 onContextMenu={(e) => handleContextMenu(e, project.p_id)}
                                 className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
@@ -247,7 +247,7 @@ function Sidebar({ user_id, role, setTasklist, setTopic, setIsEnableAddTask, set
 
                     <ul className="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
                         {users?.map((user, index) => (
-                            <li key={user.u_id || index}>
+                            <li key={index}>
                                 <div onClick={() => handleUserClick(user.u_id, user.u_name)}
                                     onContextMenu={(e) => handleContextMenu_user(e, user.u_id)}
                                     className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">

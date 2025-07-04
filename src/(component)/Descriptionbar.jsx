@@ -162,6 +162,7 @@ function Descriptionbar({ currentTask, role }) {
 
               {timeSheets?.map((timeSheet, index) => (
                 <tr
+                  key={index}
                   className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300"
                   onContextMenu={(e) => { handleContextMenu(e, timeSheet.tSheetId); console.log("context menu clicked", timeSheet.tSheetId); }}>
                   <td className="px-6 py-4">
