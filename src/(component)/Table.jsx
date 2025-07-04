@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef } from 'react'
 import { useState } from 'react';
+import OutsideClickWrapper from './OutsideClickWrapper';
+import { Result } from 'postcss';
 
 function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTask, currentProjectId, userId, setCurrentTask, setTasklist }) {
   const [newRow, setNewRow] = useState();
@@ -74,6 +76,7 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
       })
 
       const newTask = res.json();
+      console.log("New Task hhhhhhhhh: ", newTask);
       setTasklist(prev => [...prev, newTask]);
       if (res.ok) {
         alert("task created successfully");
@@ -84,6 +87,36 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
       }
     }
   };
+
+  const handleNewTaskSubmit = async () => {
+    //create task
+    const res = await fetch('/api/newtask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        t_title: taskTitle,
+        t_description: "",
+        due_date: new Date(dueDate),
+        time_estimate: parseInt(timeEstimate, 10),
+        priority: parseInt(priority, 10),
+        task_status_id: taskStatusId,
+        p_id: currentProjectId,
+        added_by_id: userId,
+        assigns
+      }),
+    })
+
+    const result = await res.json();
+    console.log("ffffffffffffffff: ", result.task);
+    setTasklist(prev => [...prev, result.task]);
+    if (res.ok) {
+      alert("task created successfully");
+      //submits should be displayed in the table
+    } else {
+      console.error("Error creating task:", taskTitle);
+      alert("Failed to create task");
+    }
+  }
 
   const handleTaskOptionClick = (e, taskId) => {
     e.preventDefault();
@@ -229,115 +262,121 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
                 <tr
                   onKeyPress={handleKeyPress}
                   ref={rowRef}
-                  className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300">
-                  {/* Task Name */}
-                  <td className="px-4 py-2">
-                    <input
-                      type="text"
-                      id="taskTitle"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                      value={taskTitle}
-                      onChange={(e) => setTaskTitle(e.target.value)}
-                      required
-                    />
-                  </td>
+                  className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300"
+                >
+                  <OutsideClickWrapper onOutsideClick={() => { setEditableTask(null); setEditTaskId(null); }}>
+                    {/* Task Name */}
+                    <td className="px-4 py-2">
+                      <input
+                        type="text"
+                        id="taskTitle"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                        value={taskTitle}
+                        onChange={(e) => setTaskTitle(e.target.value)}
+                        required
+                      />
+                    </td>
 
-                  {/* Assign Dropdown */}
-                  <td className="px-4 py-2 relative">
-                    <button
-                      type="button"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 text-left"
-                      onClick={() => setIsJobDropdownOpen(!isJobDropdownOpen)}
-                    >
-                      {assigns.length > 0 ? `${assigns.length} selected` : "Add User"}
-                      <span className="ml-1 float-right">▼</span>
-                    </button>
+                    {/* Assign Dropdown */}
+                    <td className="px-4 py-2 relative">
+                      <button
+                        type="button"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 text-left"
+                        onClick={() => setIsJobDropdownOpen(true)}
+                      >
+                        {assigns.length > 0 ? `${assigns.length} selected` : "Add User"}
+                        <span className="ml-1 float-right">▼</span>
+                      </button>
 
-                    {isJobDropdownOpen && (
-                      <div className="relative z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                        <div className="p-2">
-                          {usersInProject.map((user, index) => (
-                            <div key={index} className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800">
-                              <label className="flex items-center cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  className="mr-2 h-4 w-4 accent-blue-600"
-                                  value={user.u_id}
-                                  checked={assigns.includes(user.u_id)}
-                                  onChange={(e) => {
-                                    const userId = user.u_id;
-                                    const updatedList = e.target.checked
-                                      ? [...assigns, userId]
-                                      : assigns.filter(id => id !== userId);
-                                    setAssigns(updatedList);
-                                  }}
-                                />
-                                <span className="text-gray-800">{user.u_name}</span>
-                              </label>
+                      {isJobDropdownOpen && (
+                        <OutsideClickWrapper onOutsideClick={() => setIsJobDropdownOpen(false)}>
+                          <div className="relative z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                            <div className="p-2">
+                              {usersInProject.map((user, index) => (
+                                <div key={index} className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800">
+                                  <label className="flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      className="mr-2 h-4 w-4 accent-blue-600"
+                                      value={user.u_id}
+                                      checked={assigns.includes(user.u_id)}
+                                      onChange={(e) => {
+                                        const userId = user.u_id;
+                                        const updatedList = e.target.checked
+                                          ? [...assigns, userId]
+                                          : assigns.filter(id => id !== userId);
+                                        setAssigns(updatedList);
+                                      }}
+                                    />
+                                    <span className="text-gray-800">{user.u_name}</span>
+                                  </label>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </td>
+                          </div>
+                        </OutsideClickWrapper>
 
-                  {/* Due Date */}
-                  <td className="px-4 py-2">
-                    <input
-                      type="date"
-                      id="dueDate"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                      value={dueDate}
-                      onChange={(e) => setDueDate(e.target.value)}
-                    />
-                  </td>
+                      )}
+                    </td>
 
-                  {/* Priority */}
-                  <td className="px-4 py-2">
-                    <input
-                      type="number"
-                      id="priority"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                      value={priority}
-                      onChange={(e) => setPriority(e.target.value)}
-                    />
-                  </td>
+                    {/* Due Date */}
+                    <td className="px-4 py-2">
+                      <input
+                        type="date"
+                        id="dueDate"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                      />
+                    </td>
 
-                  {/* Task Status */}
-                  <td className="px-4 py-2">
-                    <select
-                      id="taskStatusId"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                      value={taskStatusId}
-                      onChange={(e) => setTaskStatusId(e.target.value)}
-                      required
-                    >
-                      <option value="">Select status</option>
-                      <option value="1">Open</option>
-                      <option value="2">On-Going</option>
-                      <option value="3">Done</option>
-                    </select>
-                  </td>
+                    {/* Priority */}
+                    <td className="px-4 py-2">
+                      <input
+                        type="number"
+                        id="priority"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                        value={priority}
+                        onChange={(e) => setPriority(e.target.value)}
+                      />
+                    </td>
 
-                  {/* Time Estimate */}
-                  <td className="px-4 py-2">
-                    <input
-                      type="number"
-                      id="timeEstimate"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                      value={timeEstimate}
-                      onChange={(e) => setTimeEstimate(e.target.value)}
-                    />
-                  </td>
-                  <td className="px-4 py-2 bg-blue-400">
-                    <button
-                      type="button"
-                      className="bg-blue-500 text-black px-4 rounded-lg ml-3 hover:bg-red-800 z-0"
-                      onClick={updateTask}
-                    >
-                      Submit
-                    </button>
-                  </td>
+                    {/* Task Status */}
+                    <td className="px-4 py-2">
+                      <select
+                        id="taskStatusId"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                        value={taskStatusId}
+                        onChange={(e) => setTaskStatusId(e.target.value)}
+                        required
+                      >
+                        <option value="">Select status</option>
+                        <option value="1">Open</option>
+                        <option value="2">On-Going</option>
+                        <option value="3">Done</option>
+                      </select>
+                    </td>
+
+                    {/* Time Estimate */}
+                    <td className="px-4 py-2">
+                      <input
+                        type="number"
+                        id="timeEstimate"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                        value={timeEstimate}
+                        onChange={(e) => setTimeEstimate(e.target.value)}
+                      />
+                    </td>
+                    <td className="px-4 py-2 bg-blue-400">
+                      <button
+                        type="button"
+                        className="bg-blue-500 text-black px-4 rounded-lg ml-3 hover:bg-red-800 z-0"
+                        onClick={updateTask}
+                      >
+                        Submit
+                      </button>
+                    </td>
+                  </OutsideClickWrapper>
                 </tr>
               ) : (
                 <tr
@@ -392,119 +431,128 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
             )}
 
             {newRow &&
+
               <tr
                 onKeyPress={handleKeyPress}
                 ref={rowRef}
-                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300">
-                {/* Task Name */}
-                <td className="px-4 py-2">
-                  <input
-                    type="text"
-                    id="taskTitle"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                    value={taskTitle}
-                    onChange={(e) => setTaskTitle(e.target.value)}
-                    required
-                  />
-                </td>
+                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 cursor-pointer hover:bg-gray-300"
+              >
+                <OutsideClickWrapper onOutsideClick={() => { setEditableTask(null); setEditTaskId(null); }}>
+                  {/* Task Name */}
+                  <td className="px-4 py-2">
+                    <input
+                      type="text"
+                      id="taskTitle"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                      value={taskTitle}
+                      onChange={(e) => setTaskTitle(e.target.value)}
+                      required
+                    />
+                  </td>
 
-                {/* Assign Dropdown */}
-                <td className="px-4 py-2 relative">
-                  <button
-                    type="button"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 text-left"
-                    onClick={() => setIsJobDropdownOpen(!isJobDropdownOpen)}
-                  >
-                    {assigns.length > 0 ? `${assigns.length} selected` : "Add User"}
-                    <span className="ml-1 float-right">▼</span>
-                  </button>
+                  {/* Assign Dropdown */}
+                  <td className="px-4 py-2 relative">
+                    <button
+                      type="button"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 text-left"
+                      onClick={() => setIsJobDropdownOpen(true)}
+                    >
+                      {assigns.length > 0 ? `${assigns.length} selected` : "Add User"}
+                      <span className="ml-1 float-right">▼</span>
+                    </button>
 
-                  {isJobDropdownOpen && (
-                    <div className="relative z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                      <div className="p-2">
-                        {usersInProject.map((user, index) => (
-                          <div key={index} className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800">
-                            <label className="flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                className="mr-2 h-4 w-4 accent-blue-600"
-                                value={user.u_id}
-                                checked={assigns.includes(user.u_id)}
-                                onChange={(e) => {
-                                  const userId = user.u_id;
-                                  const updatedList = e.target.checked
-                                    ? [...assigns, userId]
-                                    : assigns.filter(id => id !== userId);
-                                  setAssigns(updatedList);
-                                }}
-                              />
-                              <span className="text-gray-800">{user.u_name}</span>
-                            </label>
+                    {isJobDropdownOpen && (
+                      <OutsideClickWrapper onOutsideClick={() => setIsJobDropdownOpen(false)}>
+                        <div className="relative z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                          <div className="p-2">
+                            {usersInProject.map((user, index) => (
+                              <div key={index} className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800">
+                                <label className="flex items-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="mr-2 h-4 w-4 accent-blue-600"
+                                    value={user.u_id}
+                                    checked={assigns.includes(user.u_id)}
+                                    onChange={(e) => {
+                                      const userId = user.u_id;
+                                      const updatedList = e.target.checked
+                                        ? [...assigns, userId]
+                                        : assigns.filter(id => id !== userId);
+                                      setAssigns(updatedList);
+                                    }}
+                                  />
+                                  <span className="text-gray-800">{user.u_name}</span>
+                                </label>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </td>
+                        </div>
+                      </OutsideClickWrapper>
 
-                {/* Due Date */}
-                <td className="px-4 py-2">
-                  <input
-                    type="date"
-                    id="dueDate"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                  />
-                </td>
+                    )}
+                  </td>
 
-                {/* Priority */}
-                <td className="px-4 py-2">
-                  <input
-                    type="number"
-                    id="priority"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
-                  />
-                </td>
+                  {/* Due Date */}
+                  <td className="px-4 py-2">
+                    <input
+                      type="date"
+                      id="dueDate"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                    />
+                  </td>
 
-                {/* Task Status */}
-                <td className="px-4 py-2">
-                  <select
-                    id="taskStatusId"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                    value={taskStatusId}
-                    onChange={(e) => setTaskStatusId(e.target.value)}
-                    required
-                  >
-                    <option value="">Select status</option>
-                    <option value="1">Open</option>
-                    <option value="2">On-Going</option>
-                    <option value="3">Done</option>
-                  </select>
-                </td>
+                  {/* Priority */}
+                  <td className="px-4 py-2">
+                    <input
+                      type="number"
+                      id="priority"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                    />
+                  </td>
 
-                {/* Time Estimate */}
-                <td className="px-4 py-2">
-                  <input
-                    type="number"
-                    id="timeEstimate"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                    value={timeEstimate}
-                    onChange={(e) => setTimeEstimate(e.target.value)}
-                  />
-                </td>
-                <td className="px-4 py-2">
-                  <button
-                    type="button"
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-                    onClick={handleKeyPress}
-                  >
-                    Submit
-                  </button>
-                </td>
+                  {/* Task Status */}
+                  <td className="px-4 py-2">
+                    <select
+                      id="taskStatusId"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                      value={taskStatusId}
+                      onChange={(e) => setTaskStatusId(e.target.value)}
+                      required
+                    >
+                      <option value="">Select status</option>
+                      <option value="1">Open</option>
+                      <option value="2">On-Going</option>
+                      <option value="3">Done</option>
+                    </select>
+                  </td>
+
+                  {/* Time Estimate */}
+                  <td className="px-4 py-2">
+                    <input
+                      type="number"
+                      id="timeEstimate"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                      value={timeEstimate}
+                      onChange={(e) => setTimeEstimate(e.target.value)}
+                    />
+                  </td>
+                  <td className="px-4 py-2">
+                    <button
+                      type="button"
+                      className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                      onClick={handleNewTaskSubmit}
+                    >
+                      Submit
+                    </button>
+                  </td>
+                </OutsideClickWrapper>
               </tr>
+
+
             }
 
             {isEnableAddTask && !newRow &&
@@ -539,7 +587,7 @@ function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTa
         }
 
       </div>
-    </div>
+    </div >
   )
 }
 

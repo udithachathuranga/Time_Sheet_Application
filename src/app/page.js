@@ -7,6 +7,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from "jwt-decode";
 import { useFormStatus } from "react-dom";
+import OutsideClickWrapper from '../(component)/OutsideClickWrapper';
 
 export default function Home() {
 
@@ -25,46 +26,46 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-  const fetchData = async () => {
-    const token = Cookies.get('token');
-    console.log('token: ', token);
+    const fetchData = async () => {
+      const token = Cookies.get('token');
+      console.log('token: ', token);
 
-    if (token) {
-      const decoded = jwtDecode(token);
-      console.log("Decoded token:", decoded);
-      setRole(decoded.role);
-      setU_id(decoded.userId);
+      if (token) {
+        const decoded = jwtDecode(token);
+        console.log("Decoded token:", decoded);
+        setRole(decoded.role);
+        setU_id(decoded.userId);
 
-      // Wait for state to be updated before using role/u_id directly
-      const userRole = decoded.role;
-      const userId = decoded.userId;
+        // Wait for state to be updated before using role/u_id directly
+        const userRole = decoded.role;
+        const userId = decoded.userId;
 
-      setTopic("All");
+        setTopic("All");
 
-      if (userRole === "1") {
-        // Fetch all tasks
-        const res = await fetch('/api/all_tasks');
-        const data = await res.json();
-        setTasklist(data);
-        console.log("All tasks:", data);
+        if (userRole === "1") {
+          // Fetch all tasks
+          const res = await fetch('/api/all_tasks');
+          const data = await res.json();
+          setTasklist(data);
+          console.log("All tasks:", data);
+        } else {
+          // Fetch tasks for user
+          const res = await fetch(`/api/user_tasks?user_id=${userId}`);
+          const tasks = await res.json();
+          setTasklist(tasks);
+          console.log("User tasks:", tasks);
+        }
       } else {
-        // Fetch tasks for user
-        const res = await fetch(`/api/user_tasks?user_id=${userId}`);
-        const tasks = await res.json();
-        setTasklist(tasks);
-        console.log("User tasks:", tasks);
+        console.warn('No token found');
       }
-    } else {
-      console.warn('No token found');
-    }
-  };
+    };
 
-  fetchData();
-}, []);
+    fetchData();
+  }, []);
 
 
   useEffect(() => {
-    console.log("Task list updated: ", tasklist )
+    console.log("Task list updated: ", tasklist)
     setCompletedTasks(tasklist.filter(task => task.task_status_id === "1"));
     setOngoingTasks(tasklist.filter(task => task.task_status_id === "2"));
     setOpenTasks(tasklist.filter(task => task.task_status_id === "3"));
@@ -113,7 +114,7 @@ export default function Home() {
 
             </div>
           </div>
-          
+
           <Table name="Opened" tasks={completedTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} setTasklist={setTasklist} />
           <Table name="In Progress" tasks={ongoingTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} setTasklist={setTasklist} />
           <Table name="Completed" tasks={openTasks} showDescription={showDescription} setShowDescription={setShowDescription} isEnableAddTask={isEnableAddTask} currentProjectId={currentProjectId} userId={u_id} setCurrentTask={setCurrentTask} setTasklist={setTasklist} />
@@ -121,7 +122,11 @@ export default function Home() {
         </div>
 
         <div className="bottom-0 right-0 w-full bg-gray-200 dark:bg-gray-800 p-4 border-l border-black dark:border-white">
-          {showDescription && <Descriptionbar currentTask={currentTask} role={role} />}
+          {showDescription &&
+            <OutsideClickWrapper onOutsideClick={() => setShowDescription(false)}>
+            <Descriptionbar currentTask={currentTask} role={role} />
+            </OutsideClickWrapper>
+          }
         </div>
 
       </div>

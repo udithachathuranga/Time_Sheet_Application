@@ -45,8 +45,12 @@ function Descriptionbar({ currentTask, role }) {
           duration: parseInt(duration, 10)
         }),
       })
+      const result = await res.json();
+      console.log("ffffffffffffffff: ", result.timeSheet);
       if (res.ok) {
         alert("time sheet created successfully");
+        setTimeSheets((prev) => [...prev, result.timeSheet]);
+        setNewRow(false);
       } else {
         const errorData = await res.json();
         console.error("Error creating time sheet:", errorData);
