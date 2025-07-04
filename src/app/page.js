@@ -1,6 +1,6 @@
 'use client';
 import Descriptionbar from "../(component)/Descriptionbar";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../(component)/Sidebar";
 import Table from "../(component)/Table";
 import Cookies from 'js-cookie';

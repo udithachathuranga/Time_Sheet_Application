@@ -3,7 +3,6 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef } from 'react'
 import { useState } from 'react';
 import OutsideClickWrapper from './OutsideClickWrapper';
-import { Result } from 'postcss';
 
 function Table({ name, tasks, setShowDescription, showDescription, isEnableAddTask, currentProjectId, userId, setCurrentTask, setTasklist }) {
   const [newRow, setNewRow] = useState();
