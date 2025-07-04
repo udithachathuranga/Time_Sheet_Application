@@ -15,9 +15,9 @@ export async function GET() {
     });
 
     // Add "assigns" field with user names and "projectName" with project name
-    const tasksWithExtra = tasks.map(task => ({
-      ...task,
-      assigns: task.user_tasks.map(ut => ut.assigned_to.u_name),
+    const tasksWithExtra = tasks?.map((task,index) => ({  
+      ...task,index,
+      assigns: task.user_tasks.map((ut,index) => ut.assigned_to.u_name),
       projectName: task.project?.p_name || null,
     }));
 

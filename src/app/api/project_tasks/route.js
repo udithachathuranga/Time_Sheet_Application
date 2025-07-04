@@ -25,8 +25,8 @@ export async function GET(request) {
     });
 
     // Add `assigns` array with user names and `projectName` from project relation
-    const tasksWithAssigns = tasks.map(task => ({
-      ...task,
+    const tasksWithAssigns = tasks.map((task, index) => ({
+      ...task, index,
       assigns: task.user_tasks.map(ut => ut.assigned_to.u_name),
       projectName: task.project?.p_name || null,
     }));

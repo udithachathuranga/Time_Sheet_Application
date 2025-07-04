@@ -23,7 +23,7 @@ export async function GET(request) {
     });
 
     // Optional: Extract just the user list (not the full relation object)
-    const userList = users.map(up => up.assigned_to);
+    const userList = users.map((up, index) => up.assigned_to);
 
     return NextResponse.json(userList);
   } catch (error) {

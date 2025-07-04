@@ -12,7 +12,7 @@ export default function Home() {
         <div class="h-full px-3 py-4 overflow-y-auto bg-gray-200 dark:bg-gray-800">
 
           <div class="bg-gray-300 dark:bg-gray-700 rounded-lg text-gray-900  dark:text-white">
-            <h1 class="text-3xl font-bold text-white text-center py-4 rounded-md text-center">
+            <h1 class="text-3xl font-bold text-white text-center py-4 rounded-md">
               Projects
             </h1>
           </div>
@@ -78,7 +78,7 @@ export default function Home() {
         <div class="p-1">
 
           <div class="relative bg-gray-300 dark:bg-gray-700 rounded-lg text-gray-900  dark:text-white">
-            <h1 class="text-3xl font-bold text-white text-center py-4 rounded-md text-center">
+            <h1 class="text-3xl font-bold text-white py-4 rounded-md text-center">
               Project Name
             </h1>
           </div>
