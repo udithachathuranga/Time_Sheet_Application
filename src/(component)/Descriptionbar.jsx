@@ -97,7 +97,7 @@ function Descriptionbar({ currentTask, role }) {
   };
 
   return (
-    <aside id="separator-sidebar" className="fixed top-0 right-0 z-40 w-96 h-screen transition-transform -translate-x-full sm:translate-x-0 border-l border-black dark:border-white" aria-label="Sidebar">
+    <aside id="separator-sidebar" className="fixed top-0 right-0 z-40 w-2/3 h-screen transition-transform -translate-x-full sm:translate-x-0 border-l border-black dark:border-white" aria-label="Sidebar">
       <div className="h-full px-5 py-4 overflow-y-auto bg-gray-200 dark:bg-gray-800">
 
         <div className="bg-gray-300 dark:bg-gray-700 rounded-lg text-gray-900  dark:text-white">
